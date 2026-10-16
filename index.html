@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio Ruang Tumbuh - Life Story Canvas & Growth Tracker</title>
+  <script src="https://tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const REFLECTION_QUOTES = [
+      { quote: "Menjadi dewasa bukan tentang menyelesaikan semua masalah, tapi tentang berhenti bertengkar dengan kenyataan.", author: "Carolina Ardianti", category: "Berdamai" },
+      { quote: "Ketenangan bukanlah ketiadaan badai, melainkan keberadaan kedamaian di dalam dada di tengah badai.", author: "Reflektif Ruang Tumbuh", category: "Ketenangan" },
+      { quote: "Kamu tidak tertinggal. Kamu hanya sedang berjalan di atas linimasa hidupmu sendiri yang tak perlu dibandingkan.", author: "Carolina Ardianti", category: "Pemahaman Diri" }
+    ];
+
+    const REFLECTIVE_WOUND_RESPONSES = [
+      "Terima kasih sudah berani membuka ruang untukku. Setiap kali kamu bersikap lembut pada dirimu, rasa perihku berkurang sedikit demi sedikit.",
+      "Aku mendengar suaramu. Memang butuh waktu, tapi keberanianmu menyapaku hari ini adalah langkah terbesar menuju kedamaian.",
+      "Kamu tidak harus terburu-buru sembuh. Izinkan diri bernapas, aku di sini bukan lagi musuhmu, melainkan bagian cerita yang mendewasakanmu."
+    ];
+
+    const VALID_PASSCODES = ['RUANGTUMBUH2026', 'GENTLEGROWTH', 'BERDAMAI2026'];
+
+    function App() {
+      const [isUnlocked, setIsUnlocked] = useState(false);
+      const [inputPasscode, setInputPasscode] = useState('');
+      const [passcodeError, setPasscodeError] = useState('');
+      const [activeTab, setActiveTab] = useState('dialogue');
+      const [quoteIndex, setQuoteIndex] = useState(0);
+
+      // Dialog Luka State
+      const [dialogueMessages, setDialogueMessages] = useState([
+        { sender: 'self', text: "Halo luka, maaf ya selama ini aku selalu berusaha melarikan diri.", time: "10:15 WIB" },
+        { sender: 'wound', text: "Aku hadir hanya untuk menandai bagian diri yang butuh dipeluk dan disembuhkan.", time: "10:16 WIB" }
+      ]);
+      const [inputMessage, setInputMessage] = useState('');
+
+      // Emotional Landscape State
+      const [moodLogs, setMoodLogs] = useState([
+        { id: 1, date: 'Senin', emotion: 'Lelah / Overwhelmed', note: 'Beban To-Do list menumpuk, mencoba ambil napas.' },
+        { id: 2, date: 'Selasa', emotion: 'Tenang & Damai', note: 'Menikmati teh hangat pagi tanpa distraksi HP.' }
+      ]);
+      const [newMoodNote, setNewMoodNote] = useState('');
+
+      // Safe Vault State
+      const [vaultEntries, setVaultEntries] = useState([
+        { id: 1, title: "Melepaskan Keinginan Menjadi Ibu Sempurna", date: "12 Oktober 2026", category: "Peran & Identitas", content: "Hari ini saya sadar anak-anak tidak butuh ibu sempurna tanpa cela, tapi ibu yang hadir dan bahagia." }
+      ]);
+      const [newVaultTitle, setNewVaultTitle] = useState('');
+      const [newVaultContent, setNewVaultContent] = useState('');
+
+      // Milestones State
+      const [milestones, setMilestones] = useState([
+        { id: 1, title: "Berdamai dengan Perubahan Tubuh", date: "September 2026", story: "Berhenti membenci stretch marks dan menggantinya dengan rasa syukur.", badge: "Self-Acceptance" }
+      ]);
+      const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
+      const [newMilestoneStory, setNewMilestoneStory] = useState('');
+
+      useEffect(() => {
+        if (localStorage.getItem('ruang_tumbuh_unlocked') === 'true') {
+          setIsUnlocked(true);
+        }
+      }, []);
+
+      const handleUnlock = (e) => {
+        e.preventDefault();
+        if (VALID_PASSCODES.includes(inputPasscode.trim().toUpperCase())) {
+          localStorage.setItem('ruang_tumbuh_unlocked', 'true');
+          setIsUnlocked(true);
+        } else {
+          setPasscodeError('Kode akses tidak valid. Periksa kembali PDF Lynk.id Anda.');
+        }
+      };
+
+      const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (!inputMessage.trim()) return;
+        const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+        setDialogueMessages(prev => [...prev, { sender: 'self', text: inputMessage, time: timeStr }]);
+        setInputMessage('');
+        setTimeout(() => {
+          const randomRes = REFLECTIVE_WOUND_RESPONSES[Math.floor(Math.random() * REFLECTIVE_WOUND_RESPONSES.length)];
+          setDialogueMessages(prev => [...prev, { sender: 'wound', text: randomRes, time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' }]);
+        }, 1000);
+      };
+
+      const handleAddMood = (e) => {
+        e.preventDefault();
+        if (!newMoodNote.trim()) return;
+        setMoodLogs([{ id: Date.now(), date: 'Hari Ini', emotion: 'Tenang & Damai', note: newMoodNote }, ...moodLogs]);
+        setNewMoodNote('');
+      };
+
+      const handleAddVault = (e) => {
+        e.preventDefault();
+        if (!newVaultTitle.trim() || !newVaultContent.trim()) return;
+        setVaultEntries([{ id: Date.now(), title: newVaultTitle, date: 'Hari Ini', category: 'Refleksi Diri', content: newVaultContent }, ...vaultEntries]);
+        setNewVaultTitle('');
+        setNewVaultContent('');
+      };
+
+      const handleAddMilestone = (e) => {
+        e.preventDefault();
+        if (!newMilestoneTitle.trim() || !newMilestoneStory.trim()) return;
+        setMilestones([{ id: Date.now(), title: newMilestoneTitle, date: 'Hari Ini', story: newMilestoneStory, badge: 'Peace Marker' }, ...milestones]);
+        setNewMilestoneTitle('');
+        setNewMilestoneStory('');
+      };
+
+      if (!isUnlocked) {
+        return (
+          <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 shadow-2xl text-center space-y-6">
+              <div className="mx-auto w-14 h-14 bg-emerald-900/60 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 font-bold text-xl">🌱</div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-950 px-3 py-1 rounded-full">Studio Ruang Tumbuh</span>
+                <h2 className="text-2xl font-serif font-bold text-white mt-2">Masukkan Kode Akses</h2>
+                <p className="text-xs text-slate-300 mt-1">Masukkan kode akses privat dari file PDF Lynk.id Anda.</p>
+              </div>
+              <form onSubmit={handleUnlock} className="space-y-4">
+                <input 
+                  type="text" 
+                  value={inputPasscode}
+                  onChange={(e) => setInputPasscode(e.target.value)}
+                  placeholder="Contoh: RUANGTUMBUH2026"
+                  className="w-full text-center text-sm font-mono p-3.5 rounded-xl border border-slate-600 bg-slate-900 text-white uppercase"
+                />
+                {passcodeError && <p className="text-xs text-rose-400">{passcodeError}</p>}
+                <button type="submit" className="w-full py-3.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all">
+                  Buka Ruang Jurnal
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen pb-16 bg-slate-50">
+          <header className="bg-emerald-900 text-white py-8 px-4 shadow-sm text-center">
+            <span className="text-emerald-300 text-xs font-semibold uppercase tracking-wider">Studio Ruang Tumbuh</span>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold mt-1">Life Story Canvas & Growth Tracker</h1>
+            <p className="text-emerald-200 text-xs sm:text-sm mt-1">Merangkum jejak ketenangan, penerimaan, dan pemahaman diri</p>
+          </header>
+
+          <section className="max-w-3xl mx-auto px-4 -mt-5">
+            <div className="bg-white border border-emerald-100 rounded-2xl p-6 shadow-md text-center space-y-3">
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase rounded-full">Kutipan Hari Ini</span>
+              <p className="font-serif italic text-slate-800 text-base sm:text-lg">"{REFLECTION_QUOTES[quoteIndex].quote}"</p>
+              <p className="text-xs text-slate-500 font-medium">— {REFLECTION_QUOTES[quoteIndex].author}</p>
+            </div>
+          </section>
+
+          {/* Navigation Tabs (4 Menu Utama Lengkap) */}
+          <nav className="max-w-3xl mx-auto px-4 mt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-200 p-1.5 rounded-2xl text-xs font-medium">
+              <button onClick={() => setActiveTab('dialogue')} className={`py-3 rounded-xl transition-all ${activeTab === 'dialogue' ? 'bg-white text-emerald-900 font-bold shadow-sm' : 'text-slate-600'}`}>
+                💬 1. Dialog Luka
+              </button>
+              <button onClick={() => setActiveTab('landscape')} className={`py-3 rounded-xl transition-all ${activeTab === 'landscape' ? 'bg-white text-emerald-900 font-bold shadow-sm' : 'text-slate-600'}`}>
+                🌿 2. Lanskap Emosi
+              </button>
+              <button onClick={() => setActiveTab('vault')} className={`py-3 rounded-xl transition-all ${activeTab === 'vault' ? 'bg-white text-emerald-900 font-bold shadow-sm' : 'text-slate-600'}`}>
+                📖 3. Safe Vault
+              </button>
+              <button onClick={() => setActiveTab('milestones')} className={`py-3 rounded-xl transition-all ${activeTab === 'milestones' ? 'bg-white text-emerald-900 font-bold shadow-sm' : 'text-slate-600'}`}>
+                🏆 4. Berdamai
+              </button>
+            </div>
+          </nav>
+
+          <main className="max-w-3xl mx-auto px-4 mt-6">
+            {/* TAB 1: DIALOG LUKA */}
+            {activeTab === 'dialogue' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+                <h3 className="font-serif font-bold text-slate-900 text-base">Bicara dengan Luka: Ruang Dialog Diri</h3>
+                <div className="h-64 overflow-y-auto space-y-3 bg-slate-50 p-3 rounded-xl">
+                  {dialogueMessages.map((msg, idx) => (
+                    <div key={idx} className={`flex flex-col ${msg.sender === 'self' ? 'items-end' : 'items-start'}`}>
+                      <span className="text-[10px] text-slate-400 mb-0.5">{msg.sender === 'self' ? 'Aku Hari Ini' : 'Bagian Luka'}</span>
+                      <div className={`max-w-[85%] text-xs p-3 rounded-xl ${msg.sender === 'self' ? 'bg-emerald-900 text-white' : 'bg-rose-50 border border-rose-200 text-slate-800 font-serif'}`}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Ketik sapaan pada lukamu..."
+                    className="flex-1 text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
+                  />
+                  <button type="submit" className="bg-emerald-900 text-white px-4 rounded-xl text-xs font-bold">Kirim</button>
+                </form>
+              </div>
+            )}
+
+            {/* TAB 2: LANSKAP EMOSI */}
+            {activeTab === 'landscape' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                  <h3 className="font-serif font-bold text-slate-900 text-base">Rangkuman Emosi Mingguan</h3>
+                  <form onSubmit={handleAddMood} className="space-y-3">
+                    <input 
+                      type="text"
+                      value={newMoodNote}
+                      onChange={(e) => setNewMoodNote(e.target.value)}
+                      placeholder="Catat emosi atau hal kecil yang dirasa hari ini..."
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
+                    />
+                    <button type="submit" className="px-4 py-2 bg-emerald-800 text-white rounded-xl text-xs font-bold">Simpan Emosi</button>
+                  </form>
+                  <div className="space-y-2 pt-2">
+                    {moodLogs.map(log => (
+                      <div key={log.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span className="text-xs font-bold text-slate-800">{log.date}</span>
+                        <p className="text-xs text-slate-600 italic mt-0.5">"{log.note}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: SAFE VAULT */}
+            {activeTab === 'vault' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                  <h3 className="font-serif font-bold text-slate-900 text-base">Arsip Tulisan Reflektif Diri (Safe Vault)</h3>
+                  <form onSubmit={handleAddVault} className="space-y-3">
+                    <input 
+                      type="text"
+                      value={newVaultTitle}
+                      onChange={(e) => setNewVaultTitle(e.target.value)}
+                      placeholder="Judul Refleksi..."
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
+                    />
+                    <textarea 
+                      rows={3}
+                      value={newVaultContent}
+                      onChange={(e) => setNewVaultContent(e.target.value)}
+                      placeholder="Tuliskan isi refleksi pikiranmu..."
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
+                    />
+                    <button type="submit" className="px-4 py-2 bg-teal-800 text-white rounded-xl text-xs font-bold">Simpan ke Vault</button>
+                  </form>
+                  <div className="space-y-3 pt-2">
+                    {vaultEntries.map(entry => (
+                      <div key={entry.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded">{entry.category}</span>
+                        <h4 className="font-serif font-bold text-sm text-slate-900">{entry.title}</h4>
+                        <p className="text-xs text-slate-600">{entry.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: MILESTONES */}
+            {activeTab === 'milestones' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                  <h3 className="font-serif font-bold text-slate-900 text-base">Penanda Milestones: Momen Berdamai</h3>
+                  <form onSubmit={handleAddMilestone} className="space-y-3">
+                    <input 
+                      type="text"
+                      value={newMilestoneTitle}
+                      onChange={(e) => setNewMilestoneTitle(e.target.value)}
+                      placeholder="Judul Momen Berdamai..."
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
+                    />
+                    <textarea 
+                      rows={2}
+                      value={newMilestoneStory}
+                      onChange={(e) => setNewMilestoneStory(e.target.value)}
+                      placeholder="Kisah singkat momen ini..."
+                      className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
+                    />
+                    <button type="submit" className="px-4 py-2 bg-amber-700 text-white rounded-xl text-xs font-bold">Catat Momen</button>
+                  </form>
+                  <div className="space-y-3 pt-2">
+                    {milestones.map(m => (
+                      <div key={m.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">{m.badge}</span>
+                        <h4 className="font-serif font-bold text-sm text-slate-900">{m.title}</h4>
+                        <p className="text-xs text-slate-600 italic">"{m.story}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
